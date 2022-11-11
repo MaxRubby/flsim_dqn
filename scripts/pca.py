@@ -54,7 +54,7 @@ def main():
     # Perform PCA on weight vectors
     logging.info('Assembling output...')
     output = [(clients[i].client_id, clients[i].pref, weight) for i, weight in enumerate(weight_vecs)]
-    logging.into('Writing output to binary...')
+    logging.info('Writing output to binary...')
     with open(args.output, 'wb') as f:
         pickle.dump(output, f)
 

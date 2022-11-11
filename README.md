@@ -1,5 +1,17 @@
 # FLSim
 
+## For CSCE689-DRL Project
+
+```shell
+conda env create -f environment.yml
+```
+
+
+
+
+
+
+
 ## About
 
 Welcome to **FLSim**, a PyTorch based federated learning simulation framework, created for experimental research in a paper accepted by [IEEE INFOCOM 2020](https://infocom2020.ieee-infocom.org):

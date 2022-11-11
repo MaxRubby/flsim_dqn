@@ -9,6 +9,7 @@ class Client(object):
 
     def __init__(self, client_id):
         self.client_id = client_id
+        self.report = Report(self)
 
     def __repr__(self):
         return 'Client #{}: {} samples in labels: {}'.format(
@@ -102,7 +103,8 @@ class Client(object):
         weights = fl_model.extract_weights(self.model)
 
         # Generate report for server
-        self.report = Report(self)
+        #self.report = Report(self)
+        self.report.set_num_samples(len(self.data))
         self.report.weights = weights
 
         # Perform model testing if applicable
@@ -120,4 +122,6 @@ class Report(object):
 
     def __init__(self, client):
         self.client_id = client.client_id
-        self.num_samples = len(client.data)
+
+    def set_num_samples(self, num_samples):
+        self.num_samples = num_samples
