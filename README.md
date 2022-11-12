@@ -6,6 +6,18 @@
 conda env create -f environment.yml
 ```
 
+##### To do:
+1. Set up GPU env (Yuting)
+2. Add DQN server (DQN/DDQN)
+3. Combine PCA with DQN
+
+Evaluation:
+1. Reproduce Fig 1
+2. Fig 5 on 3 datasets (DQN vs. DDQN vs. Actor-critic?)
+3. Fig 6 on non-IID MNIST datasets with different levels (DQN vs. DDQN vs. Actor-critic?)
+4. Table 1
+
+Reference: [FL-Lottery](https://github.com/iQua/fl-lottery/tree/360d9c2d54c12e2631ac123a4dd5ac9184d913f0)
 
 
 

@@ -192,8 +192,11 @@ class Server(object):
 
         # Test global model accuracy
         if self.config.clients.do_test:  # Get average accuracy from client reports
+            print('Get average accuracy from client reports')
             accuracy = self.accuracy_averaging(reports)
+
         else:  # Test updated model on server
+            print('Test updated model on server')
             testset = self.loader.get_testset()
             batch_size = self.config.fl.batch_size
             testloader = fl_model.get_testloader(testset, batch_size)
