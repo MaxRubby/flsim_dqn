@@ -35,7 +35,7 @@ class KMeansServer(Server):
             else:  # If not enough clients in cluster, use all avaliable
                 k = len(self.clients[cluster])
 
-            sample_clients.extend(random.sample(
+            sample_clients.extend(random.sample( # random sample
                 self.clients[cluster], k))
 
          # Shuffle selected sample clients

@@ -13,8 +13,9 @@ import utils.dists as dists  # pylint: disable=no-name-in-module
 class Server(object):
     """Basic federated learning server."""
 
-    def __init__(self, config):
+    def __init__(self, config, case_name):
         self.config = config
+        self.case_name = case_name
 
     # Set up server
     def boot(self):
@@ -28,7 +29,7 @@ class Server(object):
 
         # Set up simulated server
         self.load_data()
-        self.load_model()
+        self.load_model() # save initial global model
         self.make_clients(total_clients)
 
     def load_data(self):
@@ -95,7 +96,7 @@ class Server(object):
         for client_id in range(num_clients):
 
             # Create new client
-            new_client = client.Client(client_id)
+            new_client = client.Client(client_id, self.case_name)
 
             if not IID:  # Configure clients for non-IID data
                 if self.config.data.bias:
@@ -141,6 +142,9 @@ class Server(object):
                 rounds, 100 * target_accuracy))
         else:
             logging.info('Training: {} rounds\n'.format(rounds))
+        
+        with open('output/'+self.case_name+'.csv', 'w') as f:
+            f.write('round,accuracy\n')
 
         # Perform rounds of federated learning
         for round in range(1, rounds + 1):
@@ -148,6 +152,8 @@ class Server(object):
 
             # Run the federated learning round
             accuracy = self.round()
+            with open('output/'+self.case_name+'.csv', 'a') as f:
+                f.write('{},{:.4f}'.format(round, accuracy*100)+'\n')
 
             # Break loop when target accuracy is met
             if target_accuracy and (accuracy >= target_accuracy):
@@ -191,11 +197,11 @@ class Server(object):
         self.save_model(self.model, self.config.paths.model)
 
         # Test global model accuracy
-        if self.config.clients.do_test:  # Get average accuracy from client reports
+        if self.config.clients.do_test:  # Get average test accuracy from client reports
             print('Get average accuracy from client reports')
             accuracy = self.accuracy_averaging(reports)
 
-        else:  # Test updated model on server
+        else:  # Test updated model on server using the aggregated weights
             print('Test updated model on server')
             testset = self.loader.get_testset()
             batch_size = self.config.fl.batch_size
@@ -203,7 +209,8 @@ class Server(object):
             accuracy = fl_model.test(self.model, testloader)
 
         logging.info('Average accuracy: {:.2f}%\n'.format(100 * accuracy))
-        return accuracy
+
+        return accuracy # this is testing accuracy
 
     # Federated learning phases
 
@@ -235,7 +242,7 @@ class Server(object):
             config = self.config
 
             # Continue configuraion on client
-            client.configure(config)
+            client.configure(config) # load global model to sampled client
 
     def reporting(self, sample_clients):
         # Recieve reports from sample clients
@@ -350,7 +357,7 @@ class Server(object):
         client.set_data(data, self.config)
 
     def save_model(self, model, path):
-        path += '/global'
+        path += '/global_'+self.case_name
         torch.save(model.state_dict(), path)
         logging.info('Saved global model: {}'.format(path))
 

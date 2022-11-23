@@ -7,9 +7,10 @@ import torch.optim as optim
 class Client(object):
     """Simulated federated learning client."""
 
-    def __init__(self, client_id):
+    def __init__(self, client_id, case_name):
         self.client_id = client_id
         self.report = Report(self)
+        self.case_name = case_name
 
     def __repr__(self):
         return 'Client #{}: {} samples in labels: {}'.format(
@@ -70,7 +71,7 @@ class Client(object):
         self.batch_size = config.fl.batch_size
 
         # Download most recent global model
-        path = model_path + '/global'
+        path = model_path + '/global_' + self.case_name
         self.model = fl_model.Net()
         self.model.load_state_dict(torch.load(path))
         self.model.eval()

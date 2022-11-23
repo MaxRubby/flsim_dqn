@@ -107,4 +107,5 @@ venv.bak/
 data/
 
 # Global model files
+**/global_*
 **/global
