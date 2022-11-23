@@ -18,6 +18,7 @@ Evaluation:
    * `python run.py --config=configs/MNIST/mnist_kcenter_noniid.json`
    * `python run.py --config=configs/MNIST/mnist_kmeans_noniid.json`
    * until model achieves 99% test accuracy
+   * `python plot_fig_1.py`
   
 2. Fig 5 on 3 datasets (DQN vs. DDQN vs. Actor-critic?)
 3. Fig 6 on non-IID MNIST datasets with different levels (DQN vs. DDQN vs. Actor-critic?)
