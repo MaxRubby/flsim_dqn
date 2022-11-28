@@ -109,3 +109,6 @@ data/
 # Global model files
 **/global_*
 **/global
+
+# Pycharm config file
+.idea/
