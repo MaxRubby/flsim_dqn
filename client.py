@@ -81,9 +81,7 @@ class Client(object):
 
     def run(self):
         # Perform federated learning task
-        {
-            "train": self.train()
-        }[self.task]
+        {"train": self.train()}[self.task]
 
     def get_report(self):
         # Report results to server.

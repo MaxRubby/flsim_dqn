@@ -149,9 +149,11 @@ class Server(object):
         # Perform rounds of federated learning
         for round in range(1, rounds + 1):
             logging.info('**** Round {}/{} ****'.format(round, rounds))
-
+            if self.config.server == 'dqn':
+                self.train_episode()
             # Run the federated learning round
-            accuracy = self.round()
+            else:
+                accuracy = self.round()
             with open('output/'+self.case_name+'.csv', 'a') as f:
                 f.write('{},{:.4f}'.format(round, accuracy*100)+'\n')
 
@@ -169,7 +171,7 @@ class Server(object):
         import fl_model  # pylint: disable=import-error
 
         # Select clients to participate in the round
-        sample_clients = self.selection()
+        sample_clients = self.selection() // actions
 
         # Configure sample clients
         self.configuration(sample_clients)
@@ -179,7 +181,7 @@ class Server(object):
         [t.start() for t in threads]
         [t.join() for t in threads]
 
-        # Recieve client updates
+        # Receive client updates
         reports = self.reporting(sample_clients)
 
         # Perform weight aggregation
@@ -210,7 +212,7 @@ class Server(object):
 
         logging.info('Average accuracy: {:.2f}%\n'.format(100 * accuracy))
 
-        return accuracy # this is testing accuracy
+        return accuracy # this is testing accuracy //reward
 
     # Federated learning phases
 
@@ -248,7 +250,7 @@ class Server(object):
         # Recieve reports from sample clients
         reports = [client.get_report() for client in sample_clients]
 
-        logging.info('Reports recieved: {}'.format(len(reports)))
+        logging.info('Reports received: {}'.format(len(reports)))
         assert len(reports) == len(sample_clients)
 
         return reports
