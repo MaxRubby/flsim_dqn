@@ -171,7 +171,7 @@ class Server(object):
         import fl_model  # pylint: disable=import-error
 
         # Select clients to participate in the round
-        sample_clients = self.selection() // actions
+        sample_clients = self.selection()
 
         # Configure sample clients
         self.configuration(sample_clients)
@@ -222,7 +222,7 @@ class Server(object):
 
         # Select clients randomly
         sample_clients = [client for client in random.sample(
-            self.clients, clients_per_round)]
+            self.clients, clients_per_round)] ## TODO
 
         return sample_clients
 
@@ -249,6 +249,8 @@ class Server(object):
     def reporting(self, sample_clients):
         # Recieve reports from sample clients
         reports = [client.get_report() for client in sample_clients]
+
+
 
         logging.info('Reports received: {}'.format(len(reports)))
         assert len(reports) == len(sample_clients)

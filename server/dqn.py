@@ -1,9 +1,12 @@
 import logging
+import math
 import random
 from server import Server
 from sklearn.cluster import KMeans
 from threading import Thread
 import utils.dists as dists  # pylint: disable=no-name-in-module
+
+from sklearn.decomposition import PCA
 
 from collections import deque
 from keras.layers import Dense, Input
@@ -11,43 +14,42 @@ from keras.models import Model
 from keras.optimizers import Adam
 from keras.losses import huber_loss
 import numpy as np
-from lib import plotting
 
 class DQNServer(Server):
     """Federated learning server that performs KMeans profiling during selection."""
 
     def __init__(self,config,case_name):
-        self.model = self._build_model()
+        self.dqn_model = self._build_model()
         self.target_model = self._build_model()
-        self.memory = deque(maxlen=options.replay_memory_size)
+        self.memory = deque(maxlen=1000)
         self.total_steps = 0
         super().__init__(config,case_name)
 
     def _build_model(self):
-        layers = self.options.layers
+        layers = [32]
 
-        states = Input(shape=self.env.observation_space.shape)
+        states = Input(shape=100)
         z = states
         for l in layers:
             z = Dense(l, activation='relu')(z)
 
-        q = Dense(self.env.action_space.n, activation='linear')(z)
+        q = Dense(100, activation='linear')(z)
 
         model = Model(inputs=[states], outputs=[q])
-        model.compile(optimizer=Adam(lr=self.options.alpha), loss=huber_loss)
+        model.compile(optimizer=Adam(lr=0.01), loss=huber_loss)
 
         return model
 
     def update_target_model(self):
         # copy weights from model to target_model
-        self.target_model.set_weights(self.model.get_weights())
+        self.target_model.set_weights(self.dqn_model.get_weights())
 
     def epsilon_greedy(self, state):
 
         nA = 100
         epsilon = 0.5
         action_probs = np.ones(nA, dtype=float) * epsilon / nA
-        best_action = np.argmax(self.model.predict([[state]])[0])
+        best_action = np.argmax(self.dqn_model.predict([[state]])[0])
         action_probs[best_action] += (1 - epsilon)
         action = np.random.choice(np.arange(len(action_probs)), p=action_probs)
 
@@ -66,7 +68,7 @@ class DQNServer(Server):
     def train_episode(self):
 
         # Reset the environment
-        state = self.model_weights(self.clients)
+        state = self.get_model_weights_for_state(self.clients)
         terminal_state = False
         while terminal_state == False:
             action = self.epsilon_greedy(state)
@@ -142,12 +144,12 @@ class DQNServer(Server):
 
     def step(self):
         reward = self.round() ## accuracy
-        next_state = self.model_weights(self.clients)
+        next_state = self.get_model_weights_for_state(self.clients)
         done = self.memory.length ==  self.config.fl.rounds-1
         return reward,next_state,done
 
     # Output model weights
-    def model_weights(self, clients):
+    def get_model_weights_for_state(self, clients):
         # Configure clients to train on local data
         self.configuration(clients)
 
@@ -160,18 +162,28 @@ class DQNServer(Server):
         reports = self.reporting(clients)
 
         # Extract weights from reports
-        weights = [report.weights for report in reports]
+        weights = [self.getPCAWeight(report.weights) for report in reports]
 
         return [self.flatten_weights(weight) for weight in weights]
 
+    def getPCAWeight(self,weight):
+        weight_flatten_array = self.flatten_weights(weight)
+       ## demision = int(math.sqrt(weight_flatten_array.size))
+        demision = weight_flatten_array.size
+        weight_flatten_matrix = np.reshape(weight_flatten_array[0:-80],(int(demision/1000),1000))
+
+        pca = PCA(n_components=100)
+        newWeight = pca.fit_transform(weight_flatten_matrix)
+        return  newWeight
+
     def prefs_to_weights(self):
         prefs = [client.pref for client in self.clients]
-        return list(zip(prefs, self.model_weights(self.clients)))
+        return list(zip(prefs, self.get_model_weights_for_state(self.clients)))
 
     def profiling(self, clients):
         # Perform clustering
 
-        weight_vecs = self.model_weights(clients)
+        weight_vecs = self.get_model_weights_for_state(clients)
 
         # Use the number of clusters as there are labels
         n_clusters = len(self.loader.labels)

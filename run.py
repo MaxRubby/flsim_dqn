@@ -35,7 +35,7 @@ def main():
         "kcenter": server.KCenterServer(fl_config, case_name),
         "kmeans": server.KMeansServer(fl_config, case_name),
         "magavg": server.MagAvgServer(fl_config, case_name),
-        # "dqn": server.DQNServer(fl_config), # DQN server disabled
+        "dqn": server.DQNServer(fl_config,case_name), # DQN server disabled
         # "dqntrain": server.DQNTrainServer(fl_config), # DQN server disabled
     }[fl_config.server]
     fl_server.boot()
