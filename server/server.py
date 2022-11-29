@@ -167,11 +167,15 @@ class Server(object):
                 pickle.dump(self.saved_reports, f)
             logging.info('Saved reports: {}'.format(reports_path))
 
-    def round(self):
+    def round(self,action):
         import fl_model  # pylint: disable=import-error
 
         # Select clients to participate in the round
-        sample_clients = self.selection()
+        if self.config.server == 'dqn':
+            sample_clients = self.dqnselection(action)
+        else:
+            sample_clients = self.selection()
+
 
         # Configure sample clients
         self.configuration(sample_clients)
@@ -222,9 +226,14 @@ class Server(object):
 
         # Select clients randomly
         sample_clients = [client for client in random.sample(
-            self.clients, clients_per_round)] ## TODO
+            self.clients, clients_per_round)]
 
         return sample_clients
+
+    def dqnselection(self,action):
+        sample_clients_list = [self.clients[action]]
+
+        return sample_clients_list
 
     def configuration(self, sample_clients):
         loader_type = self.config.loader

@@ -28,7 +28,7 @@ class DQNServer(Server):
     def _build_model(self):
         layers = [32]
 
-        states = Input(shape=100)
+        states = Input(shape=(10000,))
         z = states
         for l in layers:
             z = Dense(l, activation='relu')(z)
@@ -69,10 +69,12 @@ class DQNServer(Server):
 
         # Reset the environment
         state = self.get_model_weights_for_state(self.clients)
+        state = np.reshape(state, (1,10000))
         terminal_state = False
         while terminal_state == False:
             action = self.epsilon_greedy(state)
-            next_state, reward, done, _ = self.step(action)
+            reward,next_state, done = self.step(action)
+            next_state = np.reshape(next_state, (1, 10000))
             self.memorize(state, action, reward, next_state, done)
             self.replay()
             terminal_state = done
@@ -117,35 +119,39 @@ class DQNServer(Server):
         super().run()
 
     # Federated learning phases
-    def selection(self):
-        # Select devices to participate in round
-        clients_per_round = self.config.clients.per_round
-        cluster_labels = self.clients.keys()
+    def dqnselection(self,action):
+        # # Select devices to participate in round
+        # clients_per_round = self.config.clients.per_round
+        # cluster_labels = self.clients.keys()
+        #
+        # # Generate uniform distribution for selecting clients
+        # dist = dists.uniform(clients_per_round, len(cluster_labels))
+        #
+        # # Select clients from KMeans clusters
+        # sample_clients = []
+        # for i, cluster in enumerate(cluster_labels):
+        #     # Select clients according to distribution
+        #     if len(self.clients[cluster]) >= dist[i]:
+        #         k = dist[i]
+        #     else:  # If not enough clients in cluster, use all avaliable
+        #         k = len(self.clients[cluster])
+        #
+        #     sample_clients.extend(random.sample( # random sample
+        #         self.clients[cluster], k))
+        #
+        #  # Shuffle selected sample clients
+        # random.shuffle(sample_clients)
+        # sample_clients = []
+        # sample_client = self.epsilon_greedy(state)
+        # sample_clients.append(sample_client)
+        sample_clients_list = [self.clients[action]]
 
-        # Generate uniform distribution for selecting clients
-        dist = dists.uniform(clients_per_round, len(cluster_labels))
+        return sample_clients_list
 
-        # Select clients from KMeans clusters
-        sample_clients = []
-        for i, cluster in enumerate(cluster_labels):
-            # Select clients according to distribution
-            if len(self.clients[cluster]) >= dist[i]:
-                k = dist[i]
-            else:  # If not enough clients in cluster, use all avaliable
-                k = len(self.clients[cluster])
-
-            sample_clients.extend(random.sample( # random sample
-                self.clients[cluster], k))
-
-         # Shuffle selected sample clients
-        random.shuffle(sample_clients)
-
-        return sample_clients
-
-    def step(self):
-        reward = self.round() ## accuracy
+    def step(self,action):
+        reward = self.round(action) ## accuracy
         next_state = self.get_model_weights_for_state(self.clients)
-        done = self.memory.length ==  self.config.fl.rounds-1
+        done = len(self.memory) ==  self.config.fl.rounds-1
         return reward,next_state,done
 
     # Output model weights
@@ -162,18 +168,29 @@ class DQNServer(Server):
         reports = self.reporting(clients)
 
         # Extract weights from reports
-        weights = [self.getPCAWeight(report.weights) for report in reports]
+        reduced_weights = [self.getPCAWeight(report.weights) for report in reports]
 
-        return [self.flatten_weights(weight) for weight in weights]
+        weight_vecs = []
+        for weight in reduced_weights:
+            weight_vecs.extend(weight.flatten().tolist())
+
+        return np.array(weight_vecs)
+        # return self.flatten_weights(weights)
 
     def getPCAWeight(self,weight):
         weight_flatten_array = self.flatten_weights(weight)
        ## demision = int(math.sqrt(weight_flatten_array.size))
-        demision = weight_flatten_array.size
-        weight_flatten_matrix = np.reshape(weight_flatten_array[0:-80],(int(demision/1000),1000))
+        # weight_flatten_array = np.abs(weight_flatten_array)
+        # sorted_array = np.sort(weight_flatten_array)
+        # reverse_array = sorted_array[::-1]
 
-        pca = PCA(n_components=100)
-        newWeight = pca.fit_transform(weight_flatten_matrix)
+        demision = weight_flatten_array.size
+        weight_flatten_matrix = np.reshape(weight_flatten_array,(10,int(demision/10)))
+
+        pca = PCA(n_components=10)
+        pca.fit_transform(weight_flatten_matrix)
+        newWeight = pca.transform(weight_flatten_matrix)
+        # newWeight = reverse_array[0:100]
         return  newWeight
 
     def prefs_to_weights(self):
