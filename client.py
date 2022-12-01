@@ -71,7 +71,8 @@ class Client(object):
         self.batch_size = config.fl.batch_size
 
         # Download most recent global model
-        path = model_path + '/global_' + self.case_name
+        path = model_path + '/global_' + self.config.paths.case_name
+
         self.model = fl_model.Net()
         self.model.load_state_dict(torch.load(path))
         self.model.eval()

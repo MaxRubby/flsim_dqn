@@ -53,8 +53,8 @@ class Config(object):
         self.model = config['model']
 
         # -- Paths --
-        fields = ['data', 'model', 'reports']
-        defaults = ('./data', './models', None)
+        fields = ['data', 'model', 'case_name', 'reports']
+        defaults = ('./data', './models', None, None)
         # print("defaults", defaults)
         params = [config['paths'].get(field, defaults[i])
                   for i, field in enumerate(fields)]

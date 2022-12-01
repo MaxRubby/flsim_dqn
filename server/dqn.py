@@ -176,6 +176,9 @@ class DQNTrainServer(Server):
         # use a softmax function to convert the q values to probabilities
         probs = np.exp(q_values) / np.sum(np.exp(q_values))
 
+        # add small value to each probability to avoid 0 probability
+        probs = probs + 0.000001
+
         # choose an action based on the probabilities
         action = np.random.choice(self.nA, p=probs)
 

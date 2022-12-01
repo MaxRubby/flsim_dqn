@@ -165,7 +165,7 @@ class Server(object):
             with open(reports_path, 'wb') as f:
                 pickle.dump(self.saved_reports, f)
             logging.info('Saved reports: {}'.format(reports_path))
-            
+
 
     def round(self):
         import fl_model  # pylint: disable=import-error
@@ -363,7 +363,7 @@ class Server(object):
         client.set_data(data, self.config)
 
     def save_model(self, model, path):
-        path += '/global_'+self.case_name
+        path += '/global_' + self.config.paths.case_name
         torch.save(model.state_dict(), path)
         logging.info('Saved global model: {}'.format(path))
 

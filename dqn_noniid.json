@@ -25,7 +25,8 @@
     "model": "MNIST",
     "paths": {
         "data": "./data",
-        "model": "./models"        
+        "model": "./models",
+        "case_name": "10-100"        
     },
     "server": "dqntrain",
     "dqn": {
