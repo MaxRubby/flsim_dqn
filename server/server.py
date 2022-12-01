@@ -151,11 +151,7 @@ class Server(object):
         # Perform rounds of federated learning
         for round in range(1, rounds + 1):
             logging.info('**** Round {}/{} ****'.format(round, rounds))
-            if self.config.server == 'dqn':
-                self.train_episode()
-            # Run the federated learning round
-            else:
-                accuracy = self.round()
+            accuracy = self.round()
 
             with open('output/'+self.case_name+'.csv', 'a') as f:
                 f.write('{},{:.4f}'.format(round, accuracy*100)+'\n')
@@ -169,16 +165,13 @@ class Server(object):
             with open(reports_path, 'wb') as f:
                 pickle.dump(self.saved_reports, f)
             logging.info('Saved reports: {}'.format(reports_path))
+            
 
-    def round(self, action):
+    def round(self):
         import fl_model  # pylint: disable=import-error
 
         # Select clients to participate in the round
-        if self.config.server == 'dqn':
-            sample_clients = self.dqnselection(action)
-        else:
-            sample_clients = self.selection()
-
+        sample_clients = self.selection()
 
         # Configure sample clients
         self.configuration(sample_clients)

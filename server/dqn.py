@@ -30,11 +30,15 @@ class DQNTrainServer(Server):
         self.target_update = self.config.dqn.target_update
         self.batch_size = self.config.dqn.batch_size
         self.gamma = self.config.dqn.gamma
-        self.pca_n_components = 100 # number of components to use for PCA
+        # number of components to use for PCA, notice here pca_n_components should be smaller than the total number of clients!!!
+        self.pca_n_components = min(100, self.config.clients.total)  
         self.pca = None
 
         self.dqn_model = self._build_model()
         self.target_model = self._build_model()
+
+        self.pca_weights_clientserver_init = None
+        self.pca_weights_clientserver = None
 
         print("nA =", self.nA)
         # self.total_steps = 0
@@ -82,20 +86,103 @@ class DQNTrainServer(Server):
             return np.argmax(self.dqn_model.predict([[state]])[0])
 
         return policy_fn
+    
+
+    def dqn_round(self, random=False, action=0):
+        # default: select the 
+
+        import fl_model  # pylint: disable=import-error
+
+        # Select clients to participate in the round
+        if random:
+            sample_clients = self.selection()
+            print("randomly select clients:", sample_clients)
+        else:
+            sample_clients = self.dqn_selection(action)
+            print("dqn select clients:", sample_clients)
+
+        # Configure sample clients
+        self.configuration(sample_clients)
+
+        # Run clients using multithreading for better parallelism
+        threads = [Thread(target=client.run) for client in sample_clients]
+        [t.start() for t in threads]
+        [t.join() for t in threads]
+
+        # Receive client updates
+        reports = self.reporting(sample_clients) # list of weight tensors
+
+        # client weights pca
+        clients_weights = [self.flatten_weights(report.weights) for report in reports] # list of numpy arrays
+        clients_weights = np.array(clients_weights) # convert to numpy array
+        clients_weights_pca = self.pca.transform(client_weights)
+
+        # server weight pca
+        server_weights = [self.flatten_weights(self.aggregation(reports))]
+        server_weights = np.array(server_weights)
+        server_weights_pca = self.pca.transform(server_weights)
+
+        # update the weights of the selected devices and server to corresponding client id 
+        # return next_state
+        for i in range(len(sample_clients)):
+            self.pca_weights_clientserver[sample_clients[i]] = clients_weights_pca[i]
+        
+        self.pca_weights_clientserver[-1] = server_weights_pca[0]
+
+        next_state = self.pca_weights_clientserver.flatten()
+        print("next_state.shape:", next_state.shape)
+    
+        # Test global model accuracy
+        if self.config.clients.do_test:  # Get average test accuracy from client reports
+            print('Get average accuracy from client reports')
+            accuracy = self.accuracy_averaging(reports)
+
+        else:  # Test updated model on server using the aggregated weights
+            print('Test updated model on server')
+            testset = self.loader.get_testset()
+            batch_size = self.config.fl.batch_size
+            testloader = fl_model.get_testloader(testset, batch_size)
+            accuracy = fl_model.test(self.model, testloader)
+
+        logging.info('Average accuracy: {:.2f}%\n'.format(100 * accuracy))
+
+        # testing accuracy, updated pca_weights_clientserver
+        return accuracy, next_state
+
+
+    def dqn_reset_state(self):
+
+        # randomly select k devices to conduct 1 round of FL to reset the states
+        # only update the weights of the selected devices in self.pca_weights_clientserver_init
+
+        # copy over again
+        self.pca_weights_clientserver = self.pca_weights_clientserver_init.copy()
+
+        # randomly select k devices, update the weights of the selected devices and server to get next_state
+        accuracy, next_state = self.dqn_round(random=True) # updated self.pca_weights_clientserver
+
+        return next_state
+
 
 
     def train_episode(self, epsilon_current):
-
-        # Reset the environment
         
         # state = self.get_model_weights_for_state(self.clients)
         # state = np.reshape(state, (1,10000))
 
+        # reset the state at beginning of each episode, randomly select k devices to reset the states
         state = self.dqn_reset_state() #++ reset the state at beginning of each episode, randomly select k devices to reset the states
 
+        total_reward = 0
+        com_rounds = 0
+        final_acc = 0
         for t in range(self.max_steps):
             action = self.epsilon_greedy(state, epsilon_current)
-            next_state, reward, done = self.step(action) #++ during training, pick a client for next communication round
+            next_state, reward, done, acc = self.step(action) #++ during training, pick a client for next communication round
+            total_reward += reward
+            com_rounds += 1
+            final_acc = acc
+
             self.memorize(state, action, reward, next_state, done)
             self.replay() # sample a mini-batch from the replay buffer to train the DQN model
             state = next_state
@@ -104,7 +191,9 @@ class DQNTrainServer(Server):
                 break
 
             if t % self.target_update == 0:
-                self.update_target_model()        
+                self.update_target_model()
+
+        return total_reward, com_round, final_acc        
 
 
     def replay(self):
@@ -139,20 +228,23 @@ class DQNTrainServer(Server):
         self.profile_all_clients()
 
         # write out the Episode, reward, round, accuracy 
+        print("Reards logs written to:", self.case_name + '_rewards.csv')
         with open(self.case_name + '_rewards.csv', 'w') as f:
             f.write('Episode,Reward, Round, Accuracy\n')
 
         for i_episode in range(self.episode):
 
+            t_start = time.time()
             # calculate the epsilon value for the current episode
             epsilon_current = self.config.epsilon_initial * pow(self.config.dqn.epsilon_decay, i_episode)
             epsilon_current = max(self.config.dqn.epsilon_min, epsilon_current)
 
-            reward, com_round, final_acc = self.train_episode(epsilon_current) # return the reward and round number for the episode
+            total_reward, com_round, final_acc = self.train_episode(epsilon_current)
 
-            print("Episode: {}/{}, reward: {}, com_round: {}, final_acc: {:.4f}".format(i_episode, self.episode, reward, com_round, final_acc))
+            t_end = time.time()
+            print("Episode: {}/{}, reward: {}, com_round: {}, final_acc: {:.4f}, time: {:.2f} s".format(i_episode, self.episode, total_reward, com_round, final_acc, t_end - t_start))
             with open(self.case_name + '_rewards.csv', 'a') as f:
-                f.write('{},{},{},{}\n'.format(i_episode, reward, round, final_acc))
+                f.write('{},{},{},{}\n'.format(i_episode, total_reward, com_round, final_acc))
         
         print("\nTraining finished!")
 
@@ -191,11 +283,12 @@ class DQNTrainServer(Server):
 
     def step(self, action):
 
-        accuracy = self.round(action) 
+        accuracy, next_state = self.dqn_round(random=False, action=action) 
         
-        # calculate the reward based on the accuracy
+        # calculate the reward based on the accuracy and the number of communication rounds
+        # reward = xxx
 
-        next_state = self.get_model_weights_for_state(self.clients)
+        # next_state = self.update_model_weights_for_nextstate(self.clients) # +++
 
         # determine if the episode is done based on if reaching the target testing accuracy        
         if accuracy >= self.config.dqn.target_accuracy:
@@ -203,7 +296,7 @@ class DQNTrainServer(Server):
         else:
             done = False
 
-        return reward, next_state, done
+        return reward, next_state, done, accuracy
 
 
     def get_model_weights_for_state(self, clients, boot=False):
@@ -221,10 +314,12 @@ class DQNTrainServer(Server):
 
         # Extract weights from reports
         # reduced_weights = [self.getPCAWeight(report.weights) for report in reports]
-        clients_weights = [self.flatten_weights(report.weights) for report in reports]
+        clients_weights = [self.flatten_weights(report.weights) for report in reports] # list of numpy arrays
+        clients_weights = np.array(clients_weights) # convert to numpy array
+
         # print("clients_weights: ", clients_weights)
-        print("type of clients_weights[0]: ", type(clients_weights[0]))
-        print("shape of clients_weights[0]: ", clients_weights[0].shape)
+        # print("type of clients_weights[0]: ", type(clients_weights[0]))
+        print("shape of clients_weights: ", clients_weights.shape)
 
         if boot: # first time to initialize the PCA model
             # build the PCA transformer
@@ -233,31 +328,26 @@ class DQNTrainServer(Server):
             self.pca = PCA(n_components=self.pca_n_components)
             clients_weights_pca = self.pca.fit_transform(clients_weights)
             t_end = time.time()
-            print("Built PCA transformer, time: {:.2f} s", t_end - t_start)
+            print("Built PCA transformer, time: {:.2f} s".format(t_end - t_start))
         
         else: # directly use the pca model to transform the weights
             clients_weights_pca = self.pca.transform(client_weights)
 
         # print("clients_weights_pca: ", clients_weights_pca)
-        print("type of clients_weights_pca[0]: ", type(clients_weights_pca[0]))
-        print("shape of clients_weights_pca[0]: ", clients_weights_pca[0].shape)
+        # print("type of clients_weights_pca[0]: ", type(clients_weights_pca[0]))
+        print("shape of clients_weights_pca: ", clients_weights_pca.shape)
 
         # get server model updated weights based on reports from clients
-        server_weights = self.aggregation(reports)
+        server_weights = [self.flatten_weights(self.aggregation(reports))]
+        server_weights = np.array(server_weights)
         server_weights_pca = self.pca.transform(server_weights)
 
-        print("server_weights: ", server_weights)
-        print("server_weights_pca: ", server_weights_pca)
+        # print("server_weights: ", server_weights)
+        # print("server_weights_pca: ", server_weights_pca)
         print("shape of server_weights_pca: ", server_weights_pca.shape)
 
-        stop
+        return clients_weights_pca, server_weights_pca
 
-        # weight_vecs = []
-        # for weight in reduced_weights:
-        #     weight_vecs.extend(weight.flatten().tolist())
-
-        return np.array(clients_weights_pca), server_weights_pca
-        # return self.flatten_weights(weights)
 
     """
     def getPCAWeight(self,weight):
@@ -305,8 +395,9 @@ class DQNTrainServer(Server):
         clients_weights_pca, server_weights_pca = self.get_model_weights_for_state(self.clients, True)
 
         # save the initial pca weights for each client + server 
-        self.pca_weights_clientserver_init = clients_weights_pca + server_weights_pca #++
-
+        self.pca_weights_clientserver_init = np.vstack((clients_weights_pca, server_weights_pca))
+        print("shape of self.pca_weights_clientserver_init: ", self.pca_weights_clientserver_init.shape)
+   
         # save a copy for later update in DQN training episodes
         self.pca_weights_clientserver = self.pca_weights_clientserver_init.copy() 
 
