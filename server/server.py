@@ -226,10 +226,6 @@ class Server(object):
 
         return sample_clients
 
-    def dqnselection(self, action):
-        sample_clients_list = [self.clients[action]]
-
-        return sample_clients_list
 
     def configuration(self, sample_clients):
         loader_type = self.config.loader

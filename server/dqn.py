@@ -14,6 +14,7 @@ from keras.models import Model
 from keras.optimizers import Adam
 from keras.losses import huber_loss
 import numpy as np
+import pickle as pk
 
 
 class DQNTrainServer(Server):
@@ -152,6 +153,9 @@ class DQNTrainServer(Server):
         # Load updated weights
         fl_model.load_weights(self.model, updated_weights)
 
+        # save the updated global model for use in the next communication round
+        self.save_model(self.model, self.config.paths.model)
+
         # server weight pca
         server_weights = [self.flatten_weights(updated_weights)]
         server_weights = np.array(server_weights)
@@ -237,6 +241,7 @@ class DQNTrainServer(Server):
             action = self.choose_action(state)
             next_state, reward, done, acc = self.step(action) #++ during training, pick a client for next communication round
             print("episode_ct:", episode_ct, "step:", t, "acc:", acc, "action:", action, "reward:", reward, "done:", done)
+            print()
             total_reward += reward
             com_rounds += 1
             final_acc = acc
@@ -297,6 +302,7 @@ class DQNTrainServer(Server):
 
         for i_episode in range(self.episode):
 
+            print()
             t_start = time.time()
             # calculate the epsilon value for the current episode
             epsilon_current = self.config.dqn.epsilon_initial * pow(self.config.dqn.epsilon_decay, i_episode)
@@ -305,15 +311,16 @@ class DQNTrainServer(Server):
             total_reward, com_round, final_acc = self.train_episode(i_episode+1, epsilon_current)
 
             t_end = time.time()
-            print("Episode: {}/{}, reward: {}, com_round: {}, final_acc: {:.4f}, time: {:.2f} s".format(i_episode+1, self.episode, total_reward, com_round, final_acc, t_end - t_start))
+            print("Episode: {}/{}, total_reward: {}, com_round: {}, final_acc: {:.4f}, time: {:.2f} s".format(i_episode+1, self.episode, total_reward, com_round, final_acc, t_end - t_start))
             with open(fn, 'a') as f:
                 f.write('{},{},{},{}\n'.format(i_episode, total_reward, com_round, final_acc))
+            # save trained model to h5 file
+            model_fn = self.config.dqn.saved_model + '_' +str(i_episode) + '.h5'
+            self.dqn_model.save(model_fn)
+            print("DQN model saved to:", model_fn)
         
         print("\nTraining finished!")
 
-        # save trained model to h5 file
-        self.dqn_model.save(self.config.dqn.saved_model)
-        print("DQN model saved to:", self.config.dqn.saved_model)
 
 
     # Federated learning phases
@@ -365,6 +372,9 @@ class DQNTrainServer(Server):
         clients_weights = [self.flatten_weights(report.weights) for report in reports] # list of numpy arrays
         clients_weights = np.array(clients_weights) # convert to numpy array
 
+        clients_prefs = [report.pref for report in reports] # dominant class in each client
+        print("clients_prefs:", clients_prefs)
+
         # print("clients_weights: ", clients_weights)
         # print("type of clients_weights[0]: ", type(clients_weights[0]))
         print("shape of clients_weights: ", clients_weights.shape)
@@ -374,9 +384,28 @@ class DQNTrainServer(Server):
             t_start = time.time()
             print("Start building the PCA transformer...")
             self.pca = PCA(n_components=self.pca_n_components)
+            #self.pca = PCA(n_components=2)
             clients_weights_pca = self.pca.fit_transform(clients_weights)
+
+            # dump clients_weights_pca out to pkl file for plotting
+            clients_weights_pca_fn = 'output/clients_weights_pca.pkl'
+            pk.dump(clients_weights_pca, open(clients_weights_pca_fn,"wb"))
+            print("clients_weights_pca dumped to", clients_weights_pca_fn)    
+
+            # dump clients_prefs
+            clients_prefs_fn = 'output/clients_prefs.pkl'
+            pk.dump(clients_prefs, open(clients_prefs_fn,"wb"))
+            print("clients_prefs dumped to", clients_prefs_fn)        
+
             t_end = time.time()
             print("Built PCA transformer, time: {:.2f} s".format(t_end - t_start))
+
+            # save pca model out to pickl file
+            pca_model_fn = self.config.dqn.pca_model
+            pk.dump(self.pca, open(pca_model_fn,"wb"))
+            print("PCA model dumped to", pca_model_fn)
+
+            #stop
         
         else: # directly use the pca model to transform the weights
             clients_weights_pca = self.pca.transform(clients_weights)
@@ -453,3 +482,145 @@ class DQNTrainServer(Server):
     def add_client(self):
         # Add a new client to the server
         raise NotImplementedError
+
+
+
+class DQNServer(DQNTrainServer):
+    """
+    FL server using pre-trained D-DQN agent to select top k devices based on the DQN's output
+    """
+    
+    def __init__(self, config, case_name):
+        
+        super().__init__(config,case_name)
+
+    
+    def load_pca(self, pca_model_fn):
+        print("Load saved PCA model from:", pca_model_fn)
+        self.pca = pk.load(open(pca_model_fn,'rb'))
+        print("PCA model loaded.")        
+
+    def load_dqn_model(self, trained_model):
+        self.dqn_model = keras.models.load_model(trained_model)
+        print("Loaded trained DQN model from:", self.dqn_model)
+
+
+    # Set up server
+    def boot(self):
+        logging.info('Booting {} server...'.format(self.config.server))
+
+        model_path = self.config.paths.model
+        total_clients = self.config.clients.total
+
+        # Add fl_model to import path
+        sys.path.append(model_path)
+
+        # Set up simulated server
+        self.load_data()
+        self.load_model() # save initial global model
+        self.make_clients(total_clients)
+
+        # load PCA model and pretrained DQN model
+        self.load_pca(self.config.dqn.pca_model)
+        self.load_dqn_model(self.config.dqn.trained_model)
+
+    # Run federated learning with multiple communication round, each round the participating devices
+    # are selected by the trained dqn agent given the current state
+
+    ++def run(self):
+
+        rounds = self.config.fl.rounds
+        target_accuracy = self.config.fl.target_accuracy
+        reports_path = self.config.paths.reports
+
+        if target_accuracy:
+            logging.info('Training: {} rounds or {}% accuracy\n'.format(
+                rounds, 100 * target_accuracy))
+        else:
+            logging.info('Training: {} rounds\n'.format(rounds))
+        
+        with open('output/'+self.case_name+'.csv', 'w') as f:
+            f.write('round,accuracy\n')
+
+        # Perform rounds of federated learning
+        for round in range(1, rounds + 1):
+            logging.info('**** Round {}/{} ****'.format(round, rounds))
+            accuracy = self.round()
+
+            with open('output/'+self.case_name+'.csv', 'a') as f:
+                f.write('{},{:.4f}'.format(round, accuracy*100)+'\n')
+
+            # Break loop when target accuracy is met
+            if target_accuracy and (accuracy >= target_accuracy):
+                logging.info('Target accuracy reached.')
+                break
+
+        if reports_path:
+            with open(reports_path, 'wb') as f:
+                pickle.dump(self.saved_reports, f)
+            logging.info('Saved reports: {}'.format(reports_path))
+
+
+
+
+
+    # override the round() method in the server with dqn_selection() based on observed states
+    ++def round(self):
+
+         import fl_model  # pylint: disable=import-error
+
+        # Select clients to participate in the round
+        sample_clients = self.dqn_select_top_k()
+
+        # Configure sample clients
+        self.configuration(sample_clients)
+
+        # Run clients using multithreading for better parallelism
+        threads = [Thread(target=client.run) for client in sample_clients]
+        [t.start() for t in threads]
+        [t.join() for t in threads]
+
+        # Receive client updates
+        reports = self.reporting(sample_clients)
+
+        # Perform weight aggregation
+        logging.info('Aggregating updates')
+        updated_weights = self.aggregation(reports)
+
+        # Load updated weights
+        fl_model.load_weights(self.model, updated_weights)
+
+        # Extract flattened weights (if applicable)
+        if self.config.paths.reports:
+            self.save_reports(round, reports)
+
+        # Save updated global model
+        self.save_model(self.model, self.config.paths.model)
+
+        # Test global model accuracy
+        if self.config.clients.do_test:  # Get average test accuracy from client reports
+            print('Get average accuracy from client reports')
+            accuracy = self.accuracy_averaging(reports)
+
+        else:  # Test updated model on server using the aggregated weights
+            print('Test updated model on server')
+            testset = self.loader.get_testset()
+            batch_size = self.config.fl.batch_size
+            testloader = fl_model.get_testloader(testset, batch_size)
+            accuracy = fl_model.test(self.model, testloader)
+
+        logging.info('Average accuracy: {:.2f}%\n'.format(100 * accuracy))
+
+        return accuracy # this is testing accuracy //reward       
+
+
+    def dqn_select_top_k(self, state):
+        
+        # Select devices to participate in round
+        clients_per_round = self.config.clients.per_round
+
+        # Select clients randomly
+        sample_clients = [client for client in random.sample(
+            self.clients, clients_per_round)]
+
+        return sample_clients

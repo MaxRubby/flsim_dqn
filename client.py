@@ -106,6 +106,7 @@ class Client(object):
         #self.report = Report(self)
         self.report.set_num_samples(len(self.data))
         self.report.weights = weights
+        self.report.pref = int(self.pref.split(' - ')[0])
 
         # Perform model testing if applicable
         if self.do_test:

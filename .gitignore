@@ -112,3 +112,6 @@ data/
 
 # Pycharm config file
 .idea/
+
+# saved dqn models and pca models
+output/dqn_models
