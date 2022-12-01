@@ -20,7 +20,8 @@ Evaluation:
 2. Fig 5 on 3 datasets (DQN vs. DDQN vs. Actor-critic?)
    * select 10 out of 100
      * `python run.py`
-   * select 3 out of 10
+   * select 4 out of 10
+     * `python run.py --config=dqn_noniid_4_10.json`
    
 3. Fig 6 on non-IID MNIST datasets with different levels (DQN vs. DDQN vs. Actor-critic?)
    

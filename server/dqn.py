@@ -224,7 +224,7 @@ class DQNTrainServer(Server):
             if t % self.target_update == 0:
                 self.update_target_model()
 
-        return total_reward, com_round, final_acc        
+        return total_reward, com_rounds, final_acc        
 
 
     def replay(self):
