@@ -1,7 +1,7 @@
 {
     "clients": {
-        "total": 10,
-        "per_round": 2,
+        "total": 100,
+        "per_round": 10,
         "label_distribution": "uniform"
     },
     "data": {
@@ -41,6 +41,7 @@
         "target_update": 10,
         "hidden_layers": [512, 512],
         "reward_xi": 64,
-        "saved_model": "/output/dqn_trained_model.h5"        
+        "rewards_log": "output/dqn_10-100_rewards.csv",
+        "saved_model": "output/dqn_10-100_model.h5"        
     }
 }

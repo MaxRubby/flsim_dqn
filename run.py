@@ -8,13 +8,14 @@ import server
 
 # Set up parser
 parser = argparse.ArgumentParser()
-parser.add_argument('-c', '--config', type=str, default='./config.json',
+parser.add_argument('-c', '--config', type=str, default='./dqn_noniid.json',
                     help='Federated learning configuration file.')
 parser.add_argument('-l', '--log', type=str, default='INFO',
                     help='Log messages level.')
 
 args = parser.parse_args()
 case_name = args.config.split('/')[-1].split('.')[0]
+print("case_name:", case_name)
 
 # Set logging
 logging.basicConfig(
