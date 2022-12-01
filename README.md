@@ -7,9 +7,6 @@ conda env create -f environment.yml
 ```
 
 ##### To do:
-1. Set up GPU env (Yuting)
-2. Add DQN server (DQN/DDQN)
-3. Combine PCA with DQN
 
 Evaluation:
 1. Reproduce Fig 1
@@ -21,13 +18,26 @@ Evaluation:
    * `python plot_fig_1.py`
   
 2. Fig 5 on 3 datasets (DQN vs. DDQN vs. Actor-critic?)
+   
 3. Fig 6 on non-IID MNIST datasets with different levels (DQN vs. DDQN vs. Actor-critic?)
+   
 4. Table 1
 
 Reference: [FL-Lottery](https://github.com/iQua/fl-lottery/tree/360d9c2d54c12e2631ac123a4dd5ac9184d913f0)
 
+* state PCA -+
+* select 1
+* select 10 4
+* reward using accuracy +
+* Done -
+* Inference server using saved train server 
 
 
+2. Implement DDQN with sampling 1 device during training, check performance
+3. sample top k during training
+4. Check sampling 1 + random 9 devices
+5. Check consecutivly sampling 10 times (10 rounds), then aggregrate once
+6. Try small action space, like selecting 2 devices out of 10 devices
 
 
 

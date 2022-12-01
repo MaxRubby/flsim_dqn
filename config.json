@@ -1,19 +1,13 @@
 {
     "clients": {
-        "total": 100,
-        "per_round": 5,
-        "label_distribution": "uniform",
-        "do_test": false,
-        "test_partition": 0.2
+        "total": 10,
+        "per_round": 2,
+        "label_distribution": "uniform"
     },
     "data": {
-        "loading": "dynamic",
+        "loading": "static",
         "partition": {
-            "size": 600,
-            "range": [
-                50,
-                200
-            ]
+            "size": 600
         },
         "IID": false,
         "bias": {
@@ -22,8 +16,8 @@
         }
     },
     "federated_learning": {
-        "rounds": 200,
-        "target_accuracy": 0.95,
+        "rounds": 250,
+        "target_accuracy": 0.99,
         "task": "train",
         "epochs": 5,
         "batch_size": 10
@@ -31,8 +25,21 @@
     "model": "MNIST",
     "paths": {
         "data": "./data",
-        "model": "./models",
-        "reports": "reports.pkl"
+        "model": "./models"        
     },
-    "server": "dqn"
+    "server": "dqntrain",
+    "dqn": {
+        "episode": 200,
+        "max_steps": 300,
+        "learning_rate": 0.01,
+        "gamma": 0.95,
+        "epsilon_initial": 1.0,
+        "epsilon_decay": 0.95,
+        "epsilon_min": 0.01,
+        "memory_size": 200,
+        "batch_size": 4,
+        "target_update": 10,
+        "hidden_layers": [512, 512],
+        "saved_model": "/output/dqn_trained_model.h5"
+    }
 }

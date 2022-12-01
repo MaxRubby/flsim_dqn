@@ -16,6 +16,7 @@ class Server(object):
     def __init__(self, config, case_name):
         self.config = config
         self.case_name = case_name
+        #print('case_name:', case_name)
 
     # Set up server
     def boot(self):
@@ -133,6 +134,7 @@ class Server(object):
 
     # Run federated learning
     def run(self):
+
         rounds = self.config.fl.rounds
         target_accuracy = self.config.fl.target_accuracy
         reports_path = self.config.paths.reports
@@ -154,6 +156,7 @@ class Server(object):
             # Run the federated learning round
             else:
                 accuracy = self.round()
+
             with open('output/'+self.case_name+'.csv', 'a') as f:
                 f.write('{},{:.4f}'.format(round, accuracy*100)+'\n')
 
@@ -167,7 +170,7 @@ class Server(object):
                 pickle.dump(self.saved_reports, f)
             logging.info('Saved reports: {}'.format(reports_path))
 
-    def round(self,action):
+    def round(self, action):
         import fl_model  # pylint: disable=import-error
 
         # Select clients to participate in the round
@@ -230,7 +233,7 @@ class Server(object):
 
         return sample_clients
 
-    def dqnselection(self,action):
+    def dqnselection(self, action):
         sample_clients_list = [self.clients[action]]
 
         return sample_clients_list
@@ -258,9 +261,6 @@ class Server(object):
     def reporting(self, sample_clients):
         # Recieve reports from sample clients
         reports = [client.get_report() for client in sample_clients]
-
-
-
         logging.info('Reports received: {}'.format(len(reports)))
         assert len(reports) == len(sample_clients)
 
