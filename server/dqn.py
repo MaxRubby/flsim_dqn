@@ -119,8 +119,14 @@ class DQNTrainServer(Server):
         clients_weights = np.array(clients_weights) # convert to numpy array
         clients_weights_pca = self.pca.transform(clients_weights)
 
+        # Perform weight aggregation
+        logging.info('Aggregating updates')
+        updated_weights = self.aggregation(reports)
+        # Load updated weights
+        fl_model.load_weights(self.model, updated_weights)
+
         # server weight pca
-        server_weights = [self.flatten_weights(self.aggregation(reports))]
+        server_weights = [self.flatten_weights(updated_weights)]
         server_weights = np.array(server_weights)
         server_weights_pca = self.pca.transform(server_weights)
 
@@ -197,10 +203,11 @@ class DQNTrainServer(Server):
         com_rounds = 0
         final_acc = 0
         for t in range(self.max_steps):
-            print("episode_ct:", episode_ct, "step:", t)
+            
             # action = self.epsilon_greedy(state, epsilon_current)
             action = self.choose_action(state)
             next_state, reward, done, acc = self.step(action) #++ during training, pick a client for next communication round
+            print("episode_ct:", episode_ct, "step:", t, "acc:", acc, "action:", action, "reward:", reward, "done:", done)
             total_reward += reward
             com_rounds += 1
             final_acc = acc
