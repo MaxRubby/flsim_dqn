@@ -31,12 +31,15 @@ Reference: [FL-Lottery](https://github.com/iQua/fl-lottery/tree/360d9c2d54c12e26
 
 * Inference server using saved train server 
 
+Experiments:
+1. Train DDQN with sampling 1 device during training
+   * select 10 out of 100, each client has 600 data, runing train `python run.py`, takes 35 mins per epoch
+   * select 4 out of 10, each client has 6000 data, running train `python run.py --config==dqn_noniid_4_10.json`
+2. Select 1 client, but sample top k-1 during training, action-reward not matching, make sense? 
+3. Check sampling 1 + random 9 devices, action-reward not matching, make sense?
+4. Check consecutivly sampling 10 times (10 rounds), then aggregrate once, how to match action with rewards?
+5. Try small action space, like selecting 2 devices out of 10 devices
 
-2. Implement DDQN with sampling 1 device during training, check performance
-3. sample top k during training
-4. Check sampling 1 + random 9 devices
-5. Check consecutivly sampling 10 times (10 rounds), then aggregrate once
-6. Try small action space, like selecting 2 devices out of 10 devices
 
 
 

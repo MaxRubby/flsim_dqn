@@ -9,7 +9,7 @@ import utils.dists as dists  # pylint: disable=no-name-in-module
 from sklearn.decomposition import PCA
 import time
 from collections import deque
-from keras.layers import Dense, Input
+from keras.layers import Dense, Input, Dropout, ReLU
 from keras.models import Model
 from keras.optimizers import Adam
 from keras.losses import huber_loss
@@ -34,8 +34,11 @@ class DQNTrainServer(Server):
         self.pca_n_components = min(100, self.config.clients.total)  
         self.pca = None
 
-        self.dqn_model = self._build_model()
-        self.target_model = self._build_model()
+        #self.dqn_model = self._build_model()
+        #self.target_model = self._build_model()
+
+        self.dqn_model = self._build_model2()
+        self.target_model = self._build_model2()        
 
         self.pca_weights_clientserver_init = None
         self.pca_weights_clientserver = None
@@ -55,6 +58,30 @@ class DQNTrainServer(Server):
             z = Dense(l, activation='linear')(z)
 
         q = Dense(self.config.clients.total, activation='linear')(z) # here use linear activation function to predict the q values for each action/client
+
+        model = Model(inputs=[states], outputs=[q])
+        model.compile(optimizer=Adam(lr=self.config.dqn.learning_rate), loss=huber_loss)
+
+        return model
+
+    def _build_model2(self):
+
+        # use the 2layer MLP torch model in fl-lottery/rl/agent.py
+        # https://github.com/iQua/fl-lottery/blob/360d9c2d54c12e2631ac123a4dd5ac9184d913f0/rl/agent.py
+
+        layers = self.config.dqn.hidden_layers # hidden layers
+        l1 = layers[0]
+        l2 = layers[1]
+
+        # (all clients weight + server weight) * pca_n_components, flattened to 1D
+        input_size = (self.config.clients.total + 1) * self.pca_n_components 
+
+        states = Input(shape=(input_size,))
+
+        z = Dense(l1, activation='linear')(states)
+        z = Dropout(0.5)(z)
+        z = ReLU()(z)
+        q = Dense(self.config.clients.total, activation='linear')(z)
 
         model = Model(inputs=[states], outputs=[q])
         model.compile(optimizer=Adam(lr=self.config.dqn.learning_rate), loss=huber_loss)
