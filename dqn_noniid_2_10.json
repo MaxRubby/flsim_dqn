@@ -43,7 +43,7 @@
         "hidden_layers": [512, 512],
         "reward_xi": 64,
         "rewards_log": "output/dqn_2-10_model_rewards.csv",
-        "saved_model": "output/dqn_2-10_model",
+        "saved_model": "output/dqn_models/dqn_2-10_model",
         "trained_model": "output/dqn_models/dqn_2-10_model_200.h5",
         "pca_model": "output/dqn_models/pca_2-10.pkl"
     }

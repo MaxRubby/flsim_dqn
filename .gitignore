@@ -114,4 +114,5 @@ data/
 .idea/
 
 # saved dqn models and pca models
+*.h5
 output/dqn_models

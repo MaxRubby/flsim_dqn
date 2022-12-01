@@ -8,7 +8,7 @@ conda env create -f environment.yml
 
 
 Evaluation:
-1. Reproduce Fig 1
+1. Reproduce Fig 1 (done by Tian)
    * `python run.py --config=configs/MNIST/mnist_fedavg_iid.json`
    * `python run.py --config=configs/MNIST/mnist_fedavg_noniid.json`
    * `python run.py --config=configs/MNIST/mnist_kcenter_noniid.json`
@@ -16,11 +16,9 @@ Evaluation:
    * until model achieves 99% test accuracy
    * `python plot_fig_1.py`
   
-2. Fig 5 on 3 datasets (DQN vs. DDQN vs. Actor-critic?)
+2. Fig 5 on 3 datasets (DDQN vs. Actor-critic?)
    * select 10 out of 100
      * `python run.py`
-   * select 4 out of 10
-     * `python run.py --config=dqn_noniid_4_10.json`
    
 3. Fig 6 on non-IID MNIST datasets with different levels (DQN vs. DDQN vs. Actor-critic?)
    
@@ -30,22 +28,25 @@ Evaluation:
 #### To do:
 
 * Inference server using saved train server +++ Tian
-* our controbutions - Tian
+* Organize git repo - Tian
+* our controbutions in paper - Tian
   
 * add figure 1 to paper - Niu Cheng
-* plot PCA validation as shown in paper, add explanation - Yuting 
+* plot PCA validation as shown in paper, add explanation - (Yuting) 
   * 100 clients with 2 n-components, 
   * 10 clients with 2 n-components
   * data obtained, to be plotted
+  
 * experiments setup - Yuting (wait)
   * 10 / 100
   * 4 / 20
   * 2 / 10
-  * plot the Fedavg for IID/non-IID for each,
+  * plot the Fedavg for IID/non-IID for each setting (accuracy vs. round)
   * plot the DQN train performance in each setting (total rewards vs. episode) 
-  * plot DQN infer in each settings compared with FedAvg, K-means
-* Conclusion (wait)
-* Youtube video
+  * plot DQN infer in each settings compared with FedAvg, K-means (accuracy vs. round)
+
+* Conclusions (wait)
+* Youtube video 
   * make slide and present (Niu Cheng)
   
 
