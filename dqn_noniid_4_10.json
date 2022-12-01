@@ -1,13 +1,13 @@
 {
     "clients": {
-        "total": 100,
-        "per_round": 10,
+        "total": 10,
+        "per_round": 4,
         "label_distribution": "uniform"
     },
     "data": {
         "loading": "static",
         "partition": {
-            "size": 600
+            "size": 6000
         },
         "IID": false,
         "bias": {
@@ -26,7 +26,7 @@
     "paths": {
         "data": "./data",
         "model": "./models",
-        "case_name": "10-100"        
+        "case_name": "4-10"        
     },
     "server": "dqntrain",
     "dqn": {
@@ -42,7 +42,7 @@
         "target_update": 10,
         "hidden_layers": [512, 512],
         "reward_xi": 64,
-        "rewards_log": "output/dqn_10-100_rewards.csv",
-        "saved_model": "output/dqn_10-100_model.h5"        
+        "rewards_log": "output/dqn_4-10_rewards.csv",
+        "saved_model": "output/dqn_4-10_model.h5"        
     }
 }

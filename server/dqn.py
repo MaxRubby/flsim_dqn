@@ -179,11 +179,13 @@ class DQNTrainServer(Server):
         print("DQN choose action")
         q_values = self.dqn_model.predict([state], verbose=0)[0]
 
+        print("q_values:", q_values)
         # use a softmax function to convert the q values to probabilities
         probs = np.exp(q_values) / np.sum(np.exp(q_values))
+        print("probs:", probs)
 
         # add small value to each probability to avoid 0 probability
-        probs = probs + 0.000001
+        #probs = probs + 0.000001
 
         # choose an action based on the probabilities
         action = np.random.choice(self.nA, p=probs)
