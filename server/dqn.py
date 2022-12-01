@@ -189,16 +189,21 @@ class DQNTrainServer(Server):
 
         return sample_clients_list
 
+    def calculate_reward(self,accuracy_this_round):
+        target_accuracy = self.config.federated_learning.target_accuracy
+        xi = self.config.dqn.reward_xi # in article set to 64
+        reward = xi**(accuracy_this_round - target_accuracy) -1
+        return reward
+
     def step(self, action):
 
-        accuracy = self.round(action) 
-        
-        # calculate the reward based on the accuracy
+        accuracy_this_round = self.round(action)
+        reward =self.calculate_reward(accuracy_this_round)
 
         next_state = self.get_model_weights_for_state(self.clients)
 
         # determine if the episode is done based on if reaching the target testing accuracy        
-        if accuracy >= self.config.dqn.target_accuracy:
+        if accuracy_this_round >= self.config.dqn.target_accuracy:
             done = True
         else:
             done = False
