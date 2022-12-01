@@ -159,9 +159,9 @@ class DQNTrainServer(Server):
         self.pca_weights_clientserver = self.pca_weights_clientserver_init.copy()
 
         # randomly select k devices, update the weights of the selected devices and server to get next_state
-        accuracy, next_state = self.dqn_round(random=True) # updated self.pca_weights_clientserver
+        accuracy, new_state = self.dqn_round(random=True) # updated self.pca_weights_clientserver
 
-        return next_state
+        return new_state
 
 
 
@@ -253,42 +253,25 @@ class DQNTrainServer(Server):
 
     # Federated learning phases
     def dqnselection(self,action):
-        # # Select devices to participate in round
-        # clients_per_round = self.config.clients.per_round
-        # cluster_labels = self.clients.keys()
-        #
-        # # Generate uniform distribution for selecting clients
-        # dist = dists.uniform(clients_per_round, len(cluster_labels))
-        #
-        # # Select clients from KMeans clusters
-        # sample_clients = []
-        # for i, cluster in enumerate(cluster_labels):
-        #     # Select clients according to distribution
-        #     if len(self.clients[cluster]) >= dist[i]:
-        #         k = dist[i]
-        #     else:  # If not enough clients in cluster, use all avaliable
-        #         k = len(self.clients[cluster])
-        #
-        #     sample_clients.extend(random.sample( # random sample
-        #         self.clients[cluster], k))
-        #
-        #  # Shuffle selected sample clients
-        # random.shuffle(sample_clients)
-        # sample_clients = []
-        # sample_client = self.epsilon_greedy(state)
-        # sample_clients.append(sample_client)
+
         sample_clients_list = [self.clients[action]]
 
         return sample_clients_list
+
+    def calculate_reward(self, accuracy_this_round):
+        
+        target_accuracy = self.config.federated_learning.target_accuracy
+        xi = self.config.dqn.reward_xi # in article set to 64
+        reward = xi**(accuracy_this_round - target_accuracy) -1
+
+        return reward
 
     def step(self, action):
 
         accuracy, next_state = self.dqn_round(random=False, action=action) 
         
         # calculate the reward based on the accuracy and the number of communication rounds
-        # reward = xxx
-
-        # next_state = self.update_model_weights_for_nextstate(self.clients) # +++
+        reward =self.calculate_reward(accuracy)
 
         # determine if the episode is done based on if reaching the target testing accuracy        
         if accuracy >= self.config.dqn.target_accuracy:

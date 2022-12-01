@@ -69,9 +69,9 @@ class Config(object):
         # -- DQN --
         fields = ['episode', 'max_steps', 'learning_rate', 'gamma', 'epsilon_initial', 
                   'epsilon_decay', 'epsilon_min', 'memory_size', 'batch_size', 'target_update',
-                  'hidden_layers', 'saved_model']
+                  'hidden_layers', 'reward_xi', 'saved_model']
 
-        defaults = (200, 300, 0.01, 0.95, 1.0, 0.95, 0.01, 200, 4, 10, [512,512],'/output/dqn_trained_model.h5')
+        defaults = (200, 300, 0.01, 0.95, 1.0, 0.95, 0.01, 200, 4, 10, [512,512], 64, '/output/dqn_trained_model.h5')
        
         params = [config['dqn'].get(field, defaults[i])
                   for i, field in enumerate(fields)]

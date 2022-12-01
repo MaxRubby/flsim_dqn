@@ -40,6 +40,7 @@
         "batch_size": 4,
         "target_update": 10,
         "hidden_layers": [512, 512],
-        "saved_model": "/output/dqn_trained_model.h5"
+        "reward_xi": 64,
+        "saved_model": "/output/dqn_trained_model.h5"        
     }
 }
