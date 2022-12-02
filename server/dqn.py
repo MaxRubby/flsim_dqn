@@ -225,9 +225,6 @@ class DQNTrainServer(Server):
 
 
     def train_episode(self, episode_ct, epsilon_current):
-        
-        # state = self.get_model_weights_for_state(self.clients)
-        # state = np.reshape(state, (1,10000))
 
         # must reload the initial model for each episode
         self.load_model() # save initial global model
@@ -295,7 +292,7 @@ class DQNTrainServer(Server):
     def run(self):
 
         # initial profiling on all clients to get initial pca weights for each client and server model
-        self.profile_all_clients()
+        self.profile_all_clients(train_dqn=True)
 
         # write out the Episode, reward, round, accuracy 
         fn = self.config.dqn.rewards_log
@@ -357,7 +354,7 @@ class DQNTrainServer(Server):
         return next_state, reward, done, accuracy
 
 
-    def get_model_weights_for_state(self, clients, boot=False):
+    def profiling(self, clients, train_dqn=False):
 
         # Configure clients to train on local data
         self.configuration(clients)
@@ -382,7 +379,7 @@ class DQNTrainServer(Server):
         # print("type of clients_weights[0]: ", type(clients_weights[0]))
         print("shape of clients_weights: ", clients_weights.shape)
 
-        if boot: # first time to initialize the PCA model
+        if train_dqn: # first time to initialize the PCA model during training of DQN
             # build the PCA transformer
             t_start = time.time()
             print("Start building the PCA transformer...")
@@ -410,7 +407,8 @@ class DQNTrainServer(Server):
 
             #stop
         
-        else: # directly use the pca model to transform the weights
+        else: # during inference of DQN
+            # directly use the pca model to transform the weights
             clients_weights_pca = self.pca.transform(clients_weights)
 
         # print("clients_weights_pca: ", clients_weights_pca)
@@ -448,21 +446,8 @@ class DQNTrainServer(Server):
         return  newWeight
     """
 
-    """
-    def prefs_to_weights(self):
-        prefs = [client.pref for client in self.clients]
-        return list(zip(prefs, self.get_model_weights_for_state(self.clients)))
-    """
-    """
-    def profiling(self, clients):
-        # return a list of pca weights for each client
-        clients_weights, server_weights = self.get_model_weights_for_state(clients)
-
-        return clients_weights, server_weights
-    """
-
     # Server operations
-    def profile_all_clients(self):
+    def profile_all_clients(self, train_dqn):
 
         # all clients send updated weights to server, the server will do FedAvg
         # And then run  PCA and store the transformed weights
@@ -472,7 +457,7 @@ class DQNTrainServer(Server):
         assert len(self.clients)== self.config.clients.total
 
         # Perform profiling on all clients
-        clients_weights_pca, server_weights_pca = self.get_model_weights_for_state(self.clients, True)
+        clients_weights_pca, server_weights_pca = self.profiling(self.clients, train_dqn)
 
         # save the initial pca weights for each client + server 
         self.pca_weights_clientserver_init = np.vstack((clients_weights_pca, server_weights_pca))
@@ -480,12 +465,6 @@ class DQNTrainServer(Server):
    
         # save a copy for later update in DQN training episodes
         self.pca_weights_clientserver = self.pca_weights_clientserver_init.copy() 
-
-
-    def add_client(self):
-        # Add a new client to the server
-        raise NotImplementedError
-
 
 
 class DQNServer(DQNTrainServer):
@@ -526,12 +505,10 @@ class DQNServer(DQNTrainServer):
         # load PCA model and pretrained DQN model
         self.load_pca(self.config.dqn.pca_model)
         self.load_dqn_model(self.config.dqn.trained_model)
-
-    """
+    
     # Run federated learning with multiple communication round, each round the participating devices
     # are selected by the trained dqn agent given the current state
-
-    ++def run(self):
+    def run(self):
 
         rounds = self.config.fl.rounds
         target_accuracy = self.config.fl.target_accuracy
@@ -545,6 +522,9 @@ class DQNServer(DQNTrainServer):
         
         with open('output/'+self.case_name+'.csv', 'w') as f:
             f.write('round,accuracy\n')
+
+        # initial check in with server, all clients send their initial weights to server
+        self.profile_all_clients(train_dqn=False)
 
         # Perform rounds of federated learning
         for round in range(1, rounds + 1):
@@ -564,17 +544,16 @@ class DQNServer(DQNTrainServer):
                 pickle.dump(self.saved_reports, f)
             logging.info('Saved reports: {}'.format(reports_path))
 
-    """
 
-
-    """
     # override the round() method in the server with dqn_selection() based on observed states
     def round(self):
 
-         import fl_model  # pylint: disable=import-error
+        import fl_model  # pylint: disable=import-error
 
         # Select clients to participate in the round
         sample_clients = self.dqn_select_top_k()
+        sample_clients_ids = [client.client_id for client in sample_clients] 
+        print("sample_clients_ids: ", sample_clients_ids)
 
         # Configure sample clients
         self.configuration(sample_clients)
@@ -587,9 +566,26 @@ class DQNServer(DQNTrainServer):
         # Receive client updates
         reports = self.reporting(sample_clients)
 
+        # update the pca weights for each client
+        clients_weights = [self.flatten_weights(report.weights) for report in reports] # list of numpy arrays
+        clients_weights = np.array(clients_weights) # convert to numpy array
+        clients_weights_pca = self.pca.transform(clients_weights)
+
         # Perform weight aggregation
         logging.info('Aggregating updates')
         updated_weights = self.aggregation(reports)
+
+        # update the pca weights for the server
+        server_weights = [self.flatten_weights(updated_weights)]
+        server_weights = np.array(server_weights)
+        server_weights_pca = self.pca.transform(server_weights)
+
+        # update the weights of the selected devices and server to corresponding client id 
+        # return next_state
+        for i in range(len(sample_clients_ids)):
+            self.pca_weights_clientserver[sample_clients_ids[i]] = clients_weights_pca[i]
+        
+        self.pca_weights_clientserver[-1] = server_weights_pca[0]
 
         # Load updated weights
         fl_model.load_weights(self.model, updated_weights)
@@ -615,16 +611,25 @@ class DQNServer(DQNTrainServer):
 
         logging.info('Average accuracy: {:.2f}%\n'.format(100 * accuracy))
 
-        return accuracy # this is testing accuracy //reward       
-    """
+        return accuracy # this is testing accuracy  
 
-    def dqn_select_top_k(self, state):
+
+    def dqn_select_top_k(self):
         
-        # Select devices to participate in round
+        # Select devices to participate in current round
         clients_per_round = self.config.clients.per_round
 
-        # Select clients randomly
-        sample_clients = [client for client in random.sample(
-            self.clients, clients_per_round)]
+        # calculate state using the pca model transformed weights
+        state = self.pca_weights_clientserver.flatten()
+
+        # use dqn model to select top k devices
+        q_values = self.dqn_model.predict([state])[0]
+        print("q_values: ", q_values)
+
+        # select top k index based on the q_values
+        top_k_index = np.argsort(q_values)[-clients_per_round:]
+        print("top_k_index: ", top_k_index)
+
+        sample_clients = [self.clients[idx] for idx in top_k_index]
 
         return sample_clients
