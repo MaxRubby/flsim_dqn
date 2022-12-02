@@ -210,10 +210,10 @@ class DQNTrainServer(Server):
         print("DQN choose action")
         q_values = self.dqn_model.predict([state], verbose=0)[0]
 
-        print("q_values:", q_values)
+        #print("q_values:", q_values)
         # use a softmax function to convert the q values to probabilities
         probs = np.exp(q_values) / np.sum(np.exp(q_values))
-        print("probs:", probs)
+        #print("probs:", probs)
 
         # add small value to each probability to avoid 0 probability
         #probs = probs + 0.000001
@@ -228,6 +228,9 @@ class DQNTrainServer(Server):
         
         # state = self.get_model_weights_for_state(self.clients)
         # state = np.reshape(state, (1,10000))
+
+        # must reload the initial model for each episode
+        self.load_model() # save initial global model
 
         # reset the state at beginning of each episode, randomly select k devices to reset the states
         state = self.dqn_reset_state() #++ reset the state at beginning of each episode, randomly select k devices to reset the states
@@ -524,6 +527,7 @@ class DQNServer(DQNTrainServer):
         self.load_pca(self.config.dqn.pca_model)
         self.load_dqn_model(self.config.dqn.trained_model)
 
+    """
     # Run federated learning with multiple communication round, each round the participating devices
     # are selected by the trained dqn agent given the current state
 
@@ -560,12 +564,12 @@ class DQNServer(DQNTrainServer):
                 pickle.dump(self.saved_reports, f)
             logging.info('Saved reports: {}'.format(reports_path))
 
+    """
 
 
-
-
+    """
     # override the round() method in the server with dqn_selection() based on observed states
-    ++def round(self):
+    def round(self):
 
          import fl_model  # pylint: disable=import-error
 
@@ -612,7 +616,7 @@ class DQNServer(DQNTrainServer):
         logging.info('Average accuracy: {:.2f}%\n'.format(100 * accuracy))
 
         return accuracy # this is testing accuracy //reward       
-
+    """
 
     def dqn_select_top_k(self, state):
         

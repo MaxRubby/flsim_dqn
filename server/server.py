@@ -73,6 +73,7 @@ class Server(object):
         # Set up global model
         self.model = fl_model.Net()
         self.save_model(self.model, model_path)
+        print("Saved initial global model.")
 
         # Extract flattened weights (if applicable)
         if self.config.paths.reports:
