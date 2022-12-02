@@ -31,7 +31,7 @@
     "server": "dqntrain",
     "dqn": {
         "episode": 200,
-        "max_steps": 200,
+        "max_steps": 50,
         "learning_rate": 0.0001,
         "gamma": 0.95,
         "epsilon_initial": 1.0,
@@ -41,6 +41,7 @@
         "batch_size": 4,
         "target_update": 10,
         "hidden_layers": [512, 512],
+        "reward_fun": "target",
         "reward_xi": 64,
         "rewards_log": "output/dqn_10-100_rewards.csv",
         "saved_model": "output/dqn_models/dqn_10-100_model", 

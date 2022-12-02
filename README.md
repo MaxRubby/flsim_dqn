@@ -8,8 +8,10 @@ To install env:
 conda env create -f environment_torch_cpu.yml
 ```
 
+See our [5-min Youtube presentation]() ;) 
 
-Evaluation:
+
+#### Evaluation Done:
 1. Reproduce Fig 1 (done by Tian)
    * `python run.py --config=configs/MNIST/mnist_fedavg_iid.json`
    * `python run.py --config=configs/MNIST/mnist_fedavg_noniid.json`
@@ -20,41 +22,38 @@ Evaluation:
   
 2. Reproduce Figure 3, PCA on clients weights (by Tian and YuTing)
    * 100 clients with 2 PCA components
-   * 10 clients with 2 PCA components
+   * 20 clients with 2 PCA components
    * `python plots/plot_fig_3.py`
   
 3. Reproduce Fig 5(a), D-DQN trained on MNIST dataset (by Tian and YuTing)
    * select 10 out of 100, each client has 600 data
-     * `python run.py`
+     * `python run.py --config=dqn_noniid.json`
    * select 4 out of 20, each client has 3000 data
      * `python run.py --config=dqn_noniid_4_20.json`
-   * select 2 out of 10, each client has 6000 data
-     * `python run.py --config=dqn_noniid_2_10.json`
+
    * Plot Total_reward vs. Training Episodes (YuTing)
      * ``
-   
-4. Reproduce Fig 6(c) on MNIST datasets with non-IID degree of 0.8
-   * Compare DQN vs. FedAvg (Random selection) vs. K-Center
-   * 
+     
+4. Compare using the target reward function vs. new proposed difference function
+   * select 10 out of 100, each client has 600 data, using the new reward function
+     * `python run.py --config=dqn_noniid_10_100_difference.json`
+     * `python run.py --config=dqn_noniid_4_20_difference.json`
+   * Plot Total_reward vs. Training Episodes (YuTing)
+     * ``
+5. Reproduce Fig 6(c) on MNIST datasets with non-IID degree of 0.8
+   * For each of two settings, compare DQN vs. FedAvg (Random selection) vs. K-Center
 
 
 #### To do:
 
-* Inference server using saved train server +++ Tian done
-* Organize git repo - Tian
 * our controbutions in paper - Tian
   
 * add figure 1 to paper - Niu Cheng
 * plot PCA validation as shown in paper, add explanation - (Yuting) 
-  * 100 clients with 2 n-components, 
-  * 10 clients with 2 n-components
-  * data obtained, to be plotted
-  
+   
 * experiments setup - Yuting (wait)
   * 10 / 100
   * 4 / 20
-  * 2 / 10
-  * plot the Fedavg for IID/non-IID for each setting (accuracy vs. round)
   * plot the DQN train performance in each setting (total rewards vs. episode) 
   * plot DQN infer in each settings compared with FedAvg, K-means (accuracy vs. round)
 
@@ -63,13 +62,9 @@ Evaluation:
   * make slide and present (Niu Cheng)
   
 
-Experiments:
-1. Train DDQN with sampling 1 device during training
-   * select 10 out of 100, each client has 600 data, runing train `python run.py`, takes 15 mins per episode
-   * select 4 out of 20, each client has 3000 data, running train `python run.py --config=dqn_noniid_4_20.json`
-   * select 2 out of 10, each client has 6000 data, running train `python run.py --config=dqn_noniid_2_10.json`, 30 min/episode
-  
-2. Select 1 client, but sample top k-1 during training, action-reward not matching, make sense? 
+#### Naive thoughts for future work
+1. Policy gradient
+2. Select 1 client, but somehow sample top k during training, action-reward not matching, make sense? 
 3. Check sampling 1 + random 9 devices, action-reward not matching, make sense?
 4. Check consecutivly sampling 10 times (10 rounds), then aggregrate once, how to match action with rewards?
 5. Try small action space, like selecting 2 devices out of 10 devices

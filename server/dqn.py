@@ -11,7 +11,7 @@ import time
 from collections import deque
 from keras.layers import Dense, Input, Dropout, ReLU
 from keras.models import Model
-from keras.optimizers import Adam
+from tensorflow.keras.optimizers import Adam
 from keras.losses import huber_loss
 import numpy as np
 import pickle as pk
@@ -201,6 +201,7 @@ class DQNTrainServer(Server):
 
         # randomly select k devices, update the weights of the selected devices and server to get next_state
         accuracy, new_state = self.dqn_round(random=True) # updated self.pca_weights_clientserver
+        self.prev_accuracy = accuracy
 
         return new_state
 
@@ -338,12 +339,31 @@ class DQNTrainServer(Server):
 
         return reward
 
+    def calculate_reward_difference(self, cur_acc):
+        
+        prev_acc = self.prev_accuracy
+        print("prev_acc:", prev_acc)
+        print("cur_acc:", cur_acc)
+        xi = self.config.dqn.reward_xi
+        if cur_acc >= prev_acc:
+            reward = xi**(cur_acc - prev_acc) # positive rewards based on improvement
+        else:
+            reward = - xi**(prev_acc - cur_acc) # negative rewards if testing acc drops
+
+        return reward
+
     def step(self, action):
 
         accuracy, next_state = self.dqn_round(random=False, action=action) 
         
         # calculate the reward based on the accuracy and the number of communication rounds
-        reward =self.calculate_reward(accuracy)
+        if self.config.dqn.reward_fun ==  "target":
+            reward =self.calculate_reward(accuracy)
+        elif self.config.dqn.reward_fun ==  "difference":
+            reward =self.calculate_reward_difference(accuracy)
+        
+        # rest the prev_accuracy
+        self.prev_accuracy = accuracy
 
         # determine if the episode is done based on if reaching the target testing accuracy        
         if accuracy >= self.config.fl.target_accuracy:

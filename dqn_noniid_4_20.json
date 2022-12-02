@@ -31,7 +31,7 @@
     "server": "dqntrain",
     "dqn": {
         "episode": 200,
-        "max_steps": 200,
+        "max_steps": 50,
         "learning_rate": 0.0001,
         "gamma": 0.95,
         "epsilon_initial": 1.0,

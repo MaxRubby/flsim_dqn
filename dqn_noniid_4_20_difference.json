@@ -1,13 +1,13 @@
 {
     "clients": {
-        "total": 10,
-        "per_round": 2,
+        "total": 20,
+        "per_round": 4,
         "label_distribution": "uniform"
     },
     "data": {
         "loading": "static",
         "partition": {
-            "size": 6000
+            "size": 3000
         },
         "IID": false,
         "bias": {
@@ -26,7 +26,7 @@
     "paths": {
         "data": "./data",
         "model": "./models",
-        "case_name": "2-10"        
+        "case_name": "4-20_difference"        
     },
     "server": "dqntrain",
     "dqn": {
@@ -41,10 +41,11 @@
         "batch_size": 4,
         "target_update": 10,
         "hidden_layers": [512, 512],
+        "reward_fun": "difference",
         "reward_xi": 64,
-        "rewards_log": "output/dqn_2-10_model_rewards.csv",
-        "saved_model": "output/dqn_models/dqn_2-10_model",
-        "trained_model": "output/dqn_models/dqn_2-10_model_200.h5",
-        "pca_model": "output/dqn_models/pca_2-10.pkl"
+        "rewards_log": "output/dqn_4-20_difference_rewards.csv",
+        "saved_model": "output/dqn_models/dqn_4-20_difference_model",
+        "trained_model": "output/dqn_models/dqn_4-20_difference_model_200.h5",
+        "pca_model": "output/dqn_models/pca_4-20_difference.pkl"
     }
 }
