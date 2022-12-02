@@ -33,6 +33,7 @@ See our [5-min Youtube presentation]() ;)
 
    * Plot Total_reward vs. Training Episodes (YuTing)
      * ``
+<<<<<<< Updated upstream
      
 4. Compare using the target reward function vs. new proposed difference function
    * select 10 out of 100, each client has 600 data, using the new reward function
@@ -42,6 +43,12 @@ See our [5-min Youtube presentation]() ;)
      * ``
 5. Reproduce Fig 6(c) on MNIST datasets with non-IID degree of 0.8
    * For each of two settings, compare DQN vs. FedAvg (Random selection) vs. K-Center
+=======
+   
+4. Reproduce Fig 6(c) on MNIST datasets with non-IID degree of 0.8 (Testing Accuracy vs. Rounds)
+   * Compare DQN vs. FedAvg (Random selection) vs. K-Center
+   * 
+>>>>>>> Stashed changes
 
 
 #### To do:
