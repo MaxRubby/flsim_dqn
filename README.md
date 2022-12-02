@@ -2,8 +2,10 @@
 
 ## For CSCE689-DRL Project
 
+To install env:
+
 ```shell
-conda env create -f environment.yml
+conda env create -f environment_torch_cpu.yml
 ```
 
 
@@ -14,20 +16,31 @@ Evaluation:
    * `python run.py --config=configs/MNIST/mnist_kcenter_noniid.json`
    * `python run.py --config=configs/MNIST/mnist_kmeans_noniid.json`
    * until model achieves 99% test accuracy
-   * `python plot_fig_1.py`
+   * `python plots/plot_fig_1.py`
   
-2. Fig 5 on 3 datasets (DDQN vs. Actor-critic?)
-   * select 10 out of 100
+2. Reproduce Figure 3, PCA on clients weights (by Tian and YuTing)
+   * 100 clients with 2 PCA components
+   * 10 clients with 2 PCA components
+   * `python plots/plot_fig_3.py`
+  
+3. Reproduce Fig 5(a), D-DQN trained on MNIST dataset (by Tian and YuTing)
+   * select 10 out of 100, each client has 600 data
      * `python run.py`
+   * select 4 out of 20, each client has 3000 data
+     * `python run.py --config=dqn_noniid_4_20.json`
+   * select 2 out of 10, each client has 6000 data
+     * `python run.py --config=dqn_noniid_2_10.json`
+   * Plot Total_reward vs. Training Episodes (YuTing)
+     * ``
    
-3. Fig 6 on non-IID MNIST datasets with different levels (DQN vs. DDQN vs. Actor-critic?)
-   
-4. Table 1
+4. Reproduce Fig 6(c) on MNIST datasets with non-IID degree of 0.8
+   * Compare DQN vs. FedAvg (Random selection) vs. K-Center
+   * 
 
 
 #### To do:
 
-* Inference server using saved train server +++ Tian
+* Inference server using saved train server +++ Tian done
 * Organize git repo - Tian
 * our controbutions in paper - Tian
   
