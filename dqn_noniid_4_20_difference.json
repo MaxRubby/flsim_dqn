@@ -28,7 +28,7 @@
         "model": "./models",
         "case_name": "4-20_difference"        
     },
-    "server": "dqntrain",
+    "server": "dqn",
     "dqn": {
         "episode": 200,
         "max_steps": 50,
@@ -45,7 +45,7 @@
         "reward_xi": 64,
         "rewards_log": "output/dqn_4-20_difference_rewards.csv",
         "saved_model": "output/dqn_models/dqn_4-20_difference_model",
-        "trained_model": "output/dqn_models/dqn_4-20_difference_model_200.h5",
+        "trained_model": "output/dqn_models/dqn_4-20_difference_model_159.h5",
         "pca_model": "output/dqn_models/pca_4-20_difference.pkl"
     }
 }

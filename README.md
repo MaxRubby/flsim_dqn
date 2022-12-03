@@ -27,13 +27,12 @@ See our [5-min Youtube presentation]() ;)
   
 3. Reproduce Fig 5(a), D-DQN trained on MNIST dataset (by Tian and YuTing)
    * select 10 out of 100, each client has 600 data
-     * `python run.py --config=dqn_noniid.json`
+     * `python run.py --config=dqn_noniid_10_100.json`
    * select 4 out of 20, each client has 3000 data
      * `python run.py --config=dqn_noniid_4_20.json`
 
    * Plot Total_reward vs. Training Episodes (YuTing)
      * ``
-<<<<<<< Updated upstream
      
 4. Compare using the target reward function vs. new proposed difference function
    * select 10 out of 100, each client has 600 data, using the new reward function
@@ -41,14 +40,10 @@ See our [5-min Youtube presentation]() ;)
      * `python run.py --config=dqn_noniid_4_20_difference.json`
    * Plot Total_reward vs. Training Episodes (YuTing)
      * ``
+  
 5. Reproduce Fig 6(c) on MNIST datasets with non-IID degree of 0.8
-   * For each of two settings, compare DQN vs. FedAvg (Random selection) vs. K-Center
-=======
-   
-4. Reproduce Fig 6(c) on MNIST datasets with non-IID degree of 0.8 (Testing Accuracy vs. Rounds)
-   * Compare DQN vs. FedAvg (Random selection) vs. K-Center
-   * 
->>>>>>> Stashed changes
+   * For each of two settings, compare DQN_infer vs. FedAvg (Random selection) vs. K-Center vs. K-means
+   * Plot Testing Accuracy vs. Communication Rounds (YuTing)
 
 
 #### To do:
@@ -63,7 +58,8 @@ See our [5-min Youtube presentation]() ;)
   * 4 / 20
   * plot the DQN train performance in each setting (total rewards vs. episode) 
   * plot DQN infer in each settings compared with FedAvg, K-means (accuracy vs. round)
-
+  
+* why dqn not working in FL?
 * Conclusions (wait)
 * Youtube video 
   * make slide and present (Niu Cheng)

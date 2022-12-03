@@ -1,7 +1,7 @@
 {
     "clients": {
-        "total": 100,
-        "per_round": 10,
+        "total": 20,
+        "per_round": 4,
         "label_distribution":"uniform"
     },
     "data": {
@@ -17,7 +17,7 @@
 
     },
     "federated_learning": {
-        "rounds": 1000,
+        "rounds": 250,
         "target_accuracy": 0.99,
         "task": "train",
         "epochs": 5,
@@ -26,7 +26,11 @@
     "model": "MNIST",
     "paths": {
         "data": "./data",
-        "model": "./models"
+        "model": "./models",
+        "case_name": "kcenter_noniid_4-20"
     },
-    "server": "dqntrain"
+    "server": "kcenter",
+    "dqn":{
+        
+    }
 }

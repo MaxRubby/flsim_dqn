@@ -1,0 +1,36 @@
+{
+    "clients": {
+        "total": 20,
+        "per_round": 4,
+        "label_distribution":"uniform"
+    },
+    "data": {
+        "loading": "static",
+        "partition": {
+            "size": 3000
+        },
+        "IID": false,
+        "bias": {
+            "primary": 0.8,
+            "secondary": false
+        }
+
+    },
+    "federated_learning": {
+        "rounds": 250,
+        "target_accuracy": 0.99,
+        "task": "train",
+        "epochs": 5,
+        "batch_size": 10
+    },
+    "model": "MNIST",
+    "paths": {
+        "data": "./data",
+        "model": "./models",
+        "case_name": "fedavg_noniid_4-20"
+    },
+    "server": "basic",
+    "dqn":{
+
+    }
+}

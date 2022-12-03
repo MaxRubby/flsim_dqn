@@ -15,6 +15,8 @@ from tensorflow.keras.optimizers import Adam
 from keras.losses import huber_loss
 import numpy as np
 import pickle as pk
+import sys
+from tensorflow import keras
 
 
 class DQNTrainServer(Server):
@@ -486,6 +488,8 @@ class DQNTrainServer(Server):
         # save a copy for later update in DQN training episodes
         self.pca_weights_clientserver = self.pca_weights_clientserver_init.copy() 
 
+        print('self.pca_weights_clientserver.shape:', self.pca_weights_clientserver.shape)
+
 
 class DQNServer(DQNTrainServer):
     """
@@ -504,7 +508,7 @@ class DQNServer(DQNTrainServer):
 
     def load_dqn_model(self, trained_model):
         self.dqn_model = keras.models.load_model(trained_model)
-        print("Loaded trained DQN model from:", self.dqn_model)
+        print("Loaded trained DQN model from:", trained_model)
 
 
     # Set up server
@@ -638,9 +642,11 @@ class DQNServer(DQNTrainServer):
         
         # Select devices to participate in current round
         clients_per_round = self.config.clients.per_round
+        print('self.pca_weights_clientserver.shape:', self.pca_weights_clientserver.shape)
 
         # calculate state using the pca model transformed weights
         state = self.pca_weights_clientserver.flatten()
+        state = state.tolist()
 
         # use dqn model to select top k devices
         q_values = self.dqn_model.predict([state])[0]

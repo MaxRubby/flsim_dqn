@@ -11,6 +11,7 @@ class Client(object):
         self.client_id = client_id
         self.report = Report(self)
         self.case_name = case_name
+        self.pref = '-1'
 
     def __repr__(self):
         return 'Client #{}: {} samples in labels: {}'.format(
