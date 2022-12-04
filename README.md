@@ -10,8 +10,9 @@ conda env create -f environment_torch_cpu.yml
 
 See our [5-min Youtube presentation]() ;) 
 
+The Double DQN server for learning how to select devices are implemented in `/server/dqn.py`.
 
-#### Evaluation Done:
+#### Evaluation done in report:
 1. Reproduce Fig 1 (done by Tian)
    * `python run.py --config=configs/MNIST/mnist_fedavg_iid.json`
    * `python run.py --config=configs/MNIST/mnist_fedavg_noniid.json`
@@ -30,18 +31,16 @@ See our [5-min Youtube presentation]() ;)
      * `python run.py --config=dqn_noniid_10_100.json`
    * select 4 out of 20, each client has 3000 data
      * `python run.py --config=dqn_noniid_4_20.json`
-
    * Plot Total_reward vs. Training Episodes (YuTing)
-     * ``
      
-4. Compare using the target reward function vs. new proposed difference function
+     
+4. Compare using the target reward function vs. new proposed difference function (Tian, NiuCheng)
    * select 10 out of 100, each client has 600 data, using the new reward function
      * `python run.py --config=dqn_noniid_10_100_difference.json`
      * `python run.py --config=dqn_noniid_4_20_difference.json`
-   * Plot Total_reward vs. Training Episodes (YuTing)
-     * ``
+   * Plot Total_reward vs. Training Episodes (YuTing)    
   
-5. Reproduce Fig 6(c) on MNIST datasets with non-IID degree of 0.8
+5. Reproduce Fig 6(c) on MNIST datasets with non-IID degree of 0.8 (Tian)
    * For each of two settings, compare DQN_infer vs. FedAvg (Random selection) vs. K-Center vs. K-means
    * Plot Testing Accuracy vs. Communication Rounds (YuTing)
 
