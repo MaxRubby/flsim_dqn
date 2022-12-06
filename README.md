@@ -10,7 +10,7 @@ conda env create -f environment_torch_cpu.yml
 
 See our [5-min Youtube presentation](https://youtu.be/ZNkAfigHkN0) ;) 
 
-Our [slides](https://github.com/tian1327/flsim_dqn/blob/master/Project_Overview.pdf)
+Our [slides](https://github.com/tian1327/flsim_dqn/blob/master/Project_Overview.pdf) and [project report](https://github.com/tian1327/flsim_dqn/blob/master/CSCE689_DRL_Project_Report.pdf).
 
 The Double DQN server for learning how to select devices are implemented in `/server/dqn.py`.
 
