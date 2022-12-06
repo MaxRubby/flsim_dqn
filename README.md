@@ -8,7 +8,7 @@ To install env:
 conda env create -f environment_torch_cpu.yml
 ```
 
-See our [5-min Youtube presentation]() ;) 
+See our [5-min Youtube presentation](https://youtu.be/ZNkAfigHkN0) ;) 
 
 The Double DQN server for learning how to select devices are implemented in `/server/dqn.py`.
 
@@ -43,33 +43,6 @@ The Double DQN server for learning how to select devices are implemented in `/se
 5. Reproduce Fig 6(c) on MNIST datasets with non-IID degree of 0.8 (Tian)
    * For each of two settings, compare DQN_infer vs. FedAvg (Random selection) vs. K-Center vs. K-means
    * Plot Testing Accuracy vs. Communication Rounds (YuTing)
-
-
-#### To do:
-
-* our controbutions in paper - Tian
-  
-* add figure 1 to paper - Niu Cheng
-* plot PCA validation as shown in paper, add explanation - (Yuting) 
-   
-* experiments setup - Yuting (wait)
-  * 10 / 100
-  * 4 / 20
-  * plot the DQN train performance in each setting (total rewards vs. episode) 
-  * plot DQN infer in each settings compared with FedAvg, K-means (accuracy vs. round)
-  
-* why dqn not working in FL?
-* Conclusions (wait)
-* Youtube video 
-  * make slide and present (Niu Cheng)
-  
-
-#### Naive thoughts for future work
-1. Policy gradient
-2. Select 1 client, but somehow sample top k during training, action-reward not matching, make sense? 
-3. Check sampling 1 + random 9 devices, action-reward not matching, make sense?
-4. Check consecutivly sampling 10 times (10 rounds), then aggregrate once, how to match action with rewards?
-5. Try small action space, like selecting 2 devices out of 10 devices
 
 
 Reference: [FL-Lottery](https://github.com/iQua/fl-lottery/tree/360d9c2d54c12e2631ac123a4dd5ac9184d913f0)
