@@ -2,9 +2,13 @@
 
 ### CSCE689 Deep Reinforcement Learning Course Project (Fall 2022)
 
-[[Slides](https://github.com/tian1327/flsim_dqn/blob/master/Project_Overview.pdf)][[Project Report](https://github.com/tian1327/flsim_dqn/blob/master/CSCE689_DRL_Project_Report.pdf)][[5-min YouTube Presentation](https://youtu.be/ZNkAfigHkN0)]
+![alt text](https://github.com/tian1327/flsim_dqn/blob/master/flsim_dqn_logo.png "dqn logo")
 
-In this project, we implemented the D-DQN server for device selection during Federated Learning process and reproduced some results in the following paper.
+[[Slides](https://github.com/tian1327/flsim_dqn/blob/master/Project_Overview.pdf)]
+[[Project Report](https://github.com/tian1327/flsim_dqn/blob/master/CSCE689_DRL_Project_Report.pdf)]
+[[5-min YouTube Presentation](https://youtu.be/ZNkAfigHkN0)]
+
+In this project, we implemented the `D-DQN model` for device selection during Federated Learning process and reproduced some results in the following paper.
 
 [Hao Wang](https://www.haow.ca), Zakhary Kaplan, [Di Niu](https://sites.ualberta.ca/~dniu/Homepage/Home.html), [Baochun Li](http://iqua.ece.toronto.edu/bli/index.html). "Optimizing Federated Learning on Non-IID Data with Reinforcement Learning," in the Proceedings of IEEE INFOCOM, Beijing, China, April 27-30, 2020.
 
