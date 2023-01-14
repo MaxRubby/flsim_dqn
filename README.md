@@ -1,16 +1,20 @@
-# FLSim
+# flsim_dqn
 
-## For CSCE689-DRL Project
+### CSCE689 Deep Reinforcement Learning Course Project (Fall 2022)
 
-To install env:
+[[Slides](https://github.com/tian1327/flsim_dqn/blob/master/Project_Overview.pdf)][[Project Report](https://github.com/tian1327/flsim_dqn/blob/master/CSCE689_DRL_Project_Report.pdf)][[5-min YouTube Presentation](https://youtu.be/ZNkAfigHkN0)]
+
+In this project, we implemented the D-DQN server for device selection during Federated Learning process and reproduced some results in the following paper.
+
+[Hao Wang](https://www.haow.ca), Zakhary Kaplan, [Di Niu](https://sites.ualberta.ca/~dniu/Homepage/Home.html), [Baochun Li](http://iqua.ece.toronto.edu/bli/index.html). "Optimizing Federated Learning on Non-IID Data with Reinforcement Learning," in the Proceedings of IEEE INFOCOM, Beijing, China, April 27-30, 2020.
+
+
+
+#### To install env:
 
 ```shell
 conda env create -f environment_torch_cpu.yml
 ```
-
-See our [5-min Youtube presentation](https://youtu.be/ZNkAfigHkN0) ;) 
-
-Our [slides](https://github.com/tian1327/flsim_dqn/blob/master/Project_Overview.pdf) and [project report](https://github.com/tian1327/flsim_dqn/blob/master/CSCE689_DRL_Project_Report.pdf).
 
 The Double DQN server for learning how to select devices are implemented in `/server/dqn.py`.
 
@@ -48,6 +52,7 @@ The Double DQN server for learning how to select devices are implemented in `/se
 
 
 Reference: [FL-Lottery](https://github.com/iQua/fl-lottery/tree/360d9c2d54c12e2631ac123a4dd5ac9184d913f0)
+
 
 ***
 
