@@ -49,10 +49,12 @@ The Double DQN server for learning how to select devices are implemented in `/se
      * `python run.py --config=dqn_noniid_10_100_difference.json`
      * `python run.py --config=dqn_noniid_4_20_difference.json`
    * Plot Total_reward vs. Training Episodes (YuTing)    
+     * check `plots/` folder
   
 5. Reproduce Fig 6(c) on MNIST datasets with non-IID degree of 0.8 (Tian)
    * For each of two settings, compare DQN_infer vs. FedAvg (Random selection) vs. K-Center vs. K-means
    * Plot Testing Accuracy vs. Communication Rounds (YuTing)
+   * check `plots/` folder   
 
 
 Reference: [FL-Lottery](https://github.com/iQua/fl-lottery/tree/360d9c2d54c12e2631ac123a4dd5ac9184d913f0)
