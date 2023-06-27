@@ -1,12 +1,13 @@
 # flsim_dqn
 
 ### CSCE689 Deep Reinforcement Learning Course Project (Fall 2022)
-
-![alt text](https://github.com/tian1327/flsim_dqn/blob/master/flsim_dqn_logo.png "dqn logo")
-
 [[Slides](https://github.com/tian1327/flsim_dqn/blob/master/Project_Overview.pdf)]
 [[Project Report](https://github.com/tian1327/flsim_dqn/blob/master/CSCE689_DRL_Project_Report.pdf)]
 [[5-min YouTube Presentation](https://youtu.be/ZNkAfigHkN0)]
+
+
+![alt text](https://github.com/tian1327/flsim_dqn/blob/master/flsim_dqn_logo.png "dqn logo")
+
 
 In this project, we implemented the `D-DQN model` for device selection during Federated Learning process and reproduced some results in the following paper.
 
